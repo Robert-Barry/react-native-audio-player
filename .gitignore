@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+assets/dancing.mp3
+assets/loop.mp3
+
 # Expo
 .expo/
 dist/
