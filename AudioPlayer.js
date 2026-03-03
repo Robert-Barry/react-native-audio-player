@@ -42,13 +42,15 @@ const AudioPlayer = ({ currentAudioSource }) => {
         artist: 'RB',
         albumTitle: 'Sample'
       });
+      if (player.duration && status.currentTime >= status.duration) {
+        player.seekTo(0);
+      }
       player.play()
     }
 
     const onPause = () => {
       // For now set the audio back to the beginning when stopped
       player.pause();
-      player.seekTo(0);
     }
 
     const onForward = () => {
@@ -63,6 +65,15 @@ const AudioPlayer = ({ currentAudioSource }) => {
       setPlaybackRate(playbackRate === 1 ? 2 : 1);
     }
     
+    // helper formats a numeric time (seconds) as mm:ss
+    const formatTime = (seconds) => {
+      if (seconds == null || isNaN(seconds)) return '0:00';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      // pad single‑digit seconds with a leading zero
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
     return (
       <> 
         <View style={styles.audioPlayer}>
@@ -79,21 +90,24 @@ const AudioPlayer = ({ currentAudioSource }) => {
                 <Image style={styles.seek} source={require('./assets/ffwd.png')} />
               </Pressable>
             </View>
-            <Button title="Rate" onPress={onSetRate} />
-            <Text>{playbackRate}x</Text>
-            {/* progress slider follows `status` and seeks on release */}
-            <Slider
-              style={{ width: 300, height: 40 }}
-              minimumValue={0}
-              maximumValue={status.duration || 0}
-              value={status.currentTime}
-              onSlidingComplete={(seekLocation) => {
-                player.seekTo(seekLocation);
-              }}
-            />
-            <Text>
-              {Math.floor(status.currentTime)}/{Math.floor(status.duration)}s
-            </Text>
+            <Pressable onPress={onSetRate} style={styles.rateButton}>
+              <Text style={styles.rateButtonText}>{playbackRate}x</Text>
+            </Pressable>
+            <View style={styles.sliderGroup}>
+              <Text style={styles.timerStyle}>{formatTime(status.currentTime)}</Text>
+              {/* progress slider follows `status` and seeks on release */}
+              <Slider
+                style={styles.sliderStyle}
+                minimumValue={0}
+                maximumValue={status.duration || 0}
+                value={status.currentTime}
+                onSlidingComplete={(seekLocation) => {
+                  player.seekTo(seekLocation);
+                }}
+                maximumTrackTintColor='red'
+              />
+              <Text style={styles.timerStyle}>{formatTime(status.duration)}</Text>
+            </View>
           </View>
         </>
       )
@@ -103,7 +117,7 @@ const AudioPlayer = ({ currentAudioSource }) => {
     
     const styles = StyleSheet.create({
       audioPlayer: {
-        backgroundColor: 'gray'
+        backgroundColor: '#858585'
       },
       buttonRow: {
         flexDirection: 'row',
@@ -119,6 +133,25 @@ const AudioPlayer = ({ currentAudioSource }) => {
         marginTop: 12,
         width: 40,
         height: 45
+      },
+      sliderGroup: {
+        flexDirection: 'row',
+        justifyContent: 'center'
+      },
+      sliderStyle: {
+        width: '50%'
+      },
+      rateButton: {
+        alignItems: 'flex-end',
+        paddingRight: 30
+      },
+      rateButtonText: {
+        color: 'white',
+        fontSize: 20
+      },
+      timerStyle: {
+        margin: 13,
+        color: '#f8f8f8'
       }
     })
 
